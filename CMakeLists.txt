@@ -67,8 +67,14 @@ add_executable(
   src/Camera.cpp
   src/TfTreeFrameIdInfo.cpp
   )
-ament_target_dependencies(ascamera_node rclcpp std_msgs sensor_msgs pcl_conversions geometry_msgs tf2 tf2_ros)
 target_link_libraries(ascamera_node
+  rclcpp::rclcpp
+  ${std_msgs_TARGETS}
+  ${sensor_msgs_TARGETS}
+  ${pcl_conversions_TARGETS}
+  ${geometry_msgs_TARGETS}
+  tf2::tf2
+  tf2_ros::tf2_ros
   ${PCL_LIBRARIES}
 )
 
@@ -109,3 +115,4 @@ if(BUILD_TESTING)
 endif()
 
 ament_package()
+
