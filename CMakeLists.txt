@@ -50,14 +50,11 @@ include_directories(
 )
 
 if(CROSS_COMPILE)
-link_directories(
-  ${CMAKE_CURRENT_SOURCE_DIR}/libs/lib/${CROSS_COMPILE}
-)
+set(ASCAMERA_SDK_LIB_DIR ${CMAKE_CURRENT_SOURCE_DIR}/libs/lib/${CROSS_COMPILE})
 else()
-link_directories(
-  ${CMAKE_CURRENT_SOURCE_DIR}/libs/lib/${gcc_target}
-)
+set(ASCAMERA_SDK_LIB_DIR ${CMAKE_CURRENT_SOURCE_DIR}/libs/lib/${gcc_target})
 endif()
+link_directories(${ASCAMERA_SDK_LIB_DIR})
 
 add_executable(
   ascamera_node 
@@ -100,7 +97,15 @@ target_link_libraries(ascamera_node
 install(TARGETS ascamera_node
   DESTINATION lib/${PROJECT_NAME})
 
-install(DIRECTORY launch
+# Install the vendor SDK libraries next to the node and let the node find them there, so no
+# LD_LIBRARY_PATH is needed. They are kept out of lib/ because ament puts lib/ on LD_LIBRARY_PATH
+# and the unversioned libjpeg.so/libzmq.so would shadow the system libraries.
+set_target_properties(ascamera_node PROPERTIES INSTALL_RPATH "$ORIGIN")
+install(DIRECTORY ${ASCAMERA_SDK_LIB_DIR}/
+  DESTINATION lib/${PROJECT_NAME}
+  FILES_MATCHING PATTERN "*.so*")
+
+install(DIRECTORY launch configurationfiles
   DESTINATION share/${PROJECT_NAME})
 
 if(BUILD_TESTING)

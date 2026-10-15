@@ -22,6 +22,7 @@
 #include <iostream>
 #include <string>
 #include <dirent.h>
+#include <sys/stat.h>
 
 #include "Logger.h"
 #include "as_camera_sdk_api.h"
@@ -377,7 +378,14 @@ int CameraSrv::scanDir(const std::string &dir, std::vector<std::string> &file)
         if (strncmp(ent->d_name, ".", 1) == 0) {
             continue;
         }
-        if (ent->d_type == DT_REG) {
+        bool is_file = (ent->d_type == DT_REG);
+        if (ent->d_type == DT_LNK) {
+            // follow symlinks to files, e.g. config installed with colcon --symlink-install
+            struct stat st;
+            std::string linkpath(dir + "/" + ent->d_name);
+            is_file = (stat(linkpath.c_str(), &st) == 0) && S_ISREG(st.st_mode);
+        }
+        if (is_file) {
             std::string filepath(dir + "/" + ent->d_name);
             file.push_back(filepath);
         }
